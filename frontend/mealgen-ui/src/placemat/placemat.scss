@@ -1,0 +1,17 @@
+@use '../colors';
+
+.placemat {
+    background-color: colors.$secondary-color;
+    border-radius: 25px; // Round edge
+
+    // Mandate size
+    width: 95vw;
+
+    // Prevent overflowing parent
+    min-width: 0;
+    min-height: 0;
+    flex: 1;
+
+    // Slight bottom margin
+    margin: 0.5em 0;
+}

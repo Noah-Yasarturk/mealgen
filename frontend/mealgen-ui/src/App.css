@@ -1,0 +1,26 @@
+html,
+body {
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+* {
+  /* reset 8 px default margin */
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.globalAppContainer {
+  /* Force 100% width/ height */
+  height: 100dvh;
+  overflow: hidden;
+
+  /* Child object rendering */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
