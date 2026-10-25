@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -32,10 +33,10 @@ func (h *Handler) createHealthCheckHandler(r *gin.Engine) {
 	})
 }
 
-func (h *Handler) createDbCheckHandler(r *gin.Engine) {
+func (h *Handler) createDbCheckHandler(ctx context.Context, r *gin.Engine) {
 	r.GET("/ping-db", func(c *gin.Context) {
 		h.logger.Info("db pinged")
-		err := h.dbBaseDao.DbHealth()
+		err := h.dbBaseDao.DbHealth(ctx)
 		if err != nil {
 			msg := fmt.Sprintf("db health check failure: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -50,7 +51,7 @@ func (h *Handler) createDbCheckHandler(r *gin.Engine) {
 	})
 }
 
-func (h *Handler) ServeRoutes() {
+func (h *Handler) ServeRoutes(ctx context.Context) {
 	// Create a Gin router with default middleware (logger and recovery)
 	r := gin.Default()
 
@@ -62,7 +63,6 @@ func (h *Handler) ServeRoutes() {
 	}))
 
 	h.createHealthCheckHandler(r)
-	h.createDbCheckHandler(r)
-	// Start server on port 8080 (default)
+	h.createDbCheckHandler(ctx, r)
 	r.Run()
 }

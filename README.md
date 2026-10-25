@@ -8,7 +8,7 @@ Developing on Windows. Not happy about that, but AI "boom" means Macs are $$$.
 ## Prereq installs
 * Go
 * Node 
-* Sqlite
+* Postgres 
 
 ## Serving
 ### Shell 1 - web server
