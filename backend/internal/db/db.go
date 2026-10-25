@@ -1,65 +1,59 @@
 package db
 
 import (
-	"database/sql"
-	"errors"
+	"context"
+	"fmt"
 	"os"
 
+	"github.com/jackc/pgx/v5"
 	"go.uber.org/zap"
-	_ "modernc.org/sqlite" // Runs init function which registers the driver with database/sql under the name "sqlite"
 )
 
 type DbBaseDao struct {
 	logger *zap.SugaredLogger
-	dbConn *sql.DB
+	dbConn *pgx.Conn
 }
 
-func NewDbBaseDao(logger *zap.SugaredLogger, dbConn *sql.DB) *DbBaseDao {
+func NewDbBaseDao(logger *zap.SugaredLogger, dbConn *pgx.Conn) *DbBaseDao {
 	return &DbBaseDao{
 		logger: logger,
 		dbConn: dbConn,
 	}
 }
 
-// OpenDb creates a connection to the SQLite db
-func OpenDb() (*sql.DB, error) {
-	dbFilePath := os.Getenv("SQLITE_FILEPATH")
-	if dbFilePath == "" {
-		return nil, errors.New("nothing at SQLITE_FILEPATH")
+// OpenDb creates a connection to the Postgres db
+func OpenDb(ctx context.Context) (*pgx.Conn, error) {
+	conn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
+	if err != nil {
+		return nil, fmt.Errorf("open db: %v", err)
 	}
-	return sql.Open("sqlite", dbFilePath)
+	return conn, nil
 }
 
 type schemaEntry struct {
-	name string
-	ddl  string
+	tableSchema string
+	tableName   string
 }
 
-func (d *DbBaseDao) DbHealth() error {
-	pingErr := d.dbConn.Ping()
+func (d *DbBaseDao) DbHealth(ctx context.Context) error {
+	pingErr := d.dbConn.Ping(ctx)
 	if pingErr != nil {
 		d.logger.Errorf("db health: ", pingErr)
 		return pingErr
 	}
-	rows, err := d.dbConn.Query("SELECT name, sql FROM sqlite_schema limit 1")
+	rows, err := d.dbConn.Query(ctx, "SELECT table_schema, table_name FROM INFORMATION_SCHEMA.tables limit 10")
 	if err != nil {
 		d.logger.Errorf("db health: couldn't query: %w", err)
 		return err
 	}
 	defer rows.Close()
-	if c, err := rows.Columns(); err != nil {
-		d.logger.Errorf("db health: couldn't get cols: %w", err)
-		return err
-	} else {
-		d.logger.Infof("cols: %v", c)
-	}
 	for rows.Next() {
 		var schemaEntry schemaEntry
-		if err := rows.Scan(&schemaEntry.name, &schemaEntry.ddl); err != nil {
+		if err := rows.Scan(&schemaEntry.tableSchema, &schemaEntry.tableName); err != nil {
 			d.logger.Errorf("couldn't read to schemaEntry: %v", err)
 			return err
 		}
-		d.logger.Infof("schemaEntry: %v, %v", schemaEntry.name, schemaEntry.ddl)
+		d.logger.Infof("schemaEntry: schema - %v, table - %v", schemaEntry.tableSchema, schemaEntry.tableName)
 	}
 	if err := rows.Err(); err != nil {
 		d.logger.Errorf("db health: row iteration: %v", err)
