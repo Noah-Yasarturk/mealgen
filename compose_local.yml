@@ -1,0 +1,17 @@
+services:
+  op-db:
+    image: 
+    volumes:
+      - db-data:/app/data/ # External volume to local data
+  api:
+    build: ./backend
+    ports: 
+      - "5000:8080" # host port 5000 listens to container port 8080
+    environment:
+      - PORT=8080
+      - SQLITE_FILEPATH="file:/etc/data"
+    volumes:
+      - db-data:
+  
+volumes:
+  db-data:
