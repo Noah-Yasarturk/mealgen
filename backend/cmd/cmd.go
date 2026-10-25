@@ -16,7 +16,7 @@ func main() {
 	defer zapLogger.Sync()
 	logger := zapLogger.Sugar()
 
-	// Start dnb
+	// Connect to db
 	dbConn, err := db.OpenDb()
 	if err != nil {
 		logger.Fatalf("connecting to db: %v", err)
