@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
@@ -52,6 +53,14 @@ func (h *Handler) createDbCheckHandler(r *gin.Engine) {
 func (h *Handler) ServeRoutes() {
 	// Create a Gin router with default middleware (logger and recovery)
 	r := gin.Default()
+
+	// Enable CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:3000"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Origin", "Content-Type", "Accept"},
+	}))
+
 	h.createHealthCheckHandler(r)
 	h.createDbCheckHandler(r)
 	// Start server on port 8080 (default)
