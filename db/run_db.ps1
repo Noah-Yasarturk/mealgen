@@ -1,2 +1,1 @@
-# Create or open a persistent database file on disk
-sqlite3 mealgen.db
+docker run -it -e "POSTGRES_PASSWORD=$env:PG_SECRET" -p 5432:5432 postgres:latest 

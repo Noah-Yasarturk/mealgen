@@ -3,7 +3,7 @@ Write-Host "Running mealgen app..." -ForegroundColor Green -BackgroundColor Blac
 
 # Set env vars
 $env:PORT = "8080"
-$env:SQLITE_FILEPATH = "file:../db/mealgen.db"
+$env:DATABASE_URL = "postgres://${env:PG_USER}:${env:PG_SECRET}@localhost:5432/postgres"
 
 # Run the app
 $cmdDir = Join-Path $PSScriptRoot 'cmd'
