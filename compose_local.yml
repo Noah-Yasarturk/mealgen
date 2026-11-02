@@ -1,17 +1,19 @@
 services:
   op-db:
-    image: 
-    volumes:
-      - db-data:/app/data/ # External volume to local data
+    image: postgres:latest # postgres
+    environment:
+      - POSTGRES_PASSWORD=${PG_SECRET}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+    ports:
+      - "5432:5432" # hostPortListens:ContainerPortExposes
   api:
     build: ./backend
     ports: 
-      - "5000:8080" # host port 5000 listens to container port 8080
+      - "8080:8080" # hostPortListens:ContainerPortExposes
     environment:
       - PORT=8080
-      - SQLITE_FILEPATH="file:/etc/data"
-    volumes:
-      - db-data:
-  
-volumes:
-  db-data:
+      - DATABASE_URL=postgres://${PG_USER}:${PG_SECRET}@op-db:5432/postgres
+    depends_on:
+      op-db:
+        condition: service_healthy
